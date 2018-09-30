@@ -1,10 +1,44 @@
 {
 "Resources": {
-"IAMLambdaAPIServiceRole":
+	"IAMLambdaServiceRole":
+	{
+		"Type": "AWS::IAM::Role",
+		"Properties": {
+	    "RoleName": "LambdaServiceRole",
+	 		"AssumeRolePolicyDocument": {
+			  "Version": "2012-10-17",
+			  "Statement": [
+	      {
+	        "Sid": "",
+	        "Effect": "Allow",
+	        "Principal": {
+	          "Service": "lambda.amazonaws.com"
+	          },
+	        "Action": "sts:AssumeRole"
+	      }
+			  ]
+			},
+			"ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"],
+			"Policies": [{
+				"PolicyName": "LambdaServiceRolePolicy",
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+	          {
+	          "Action": ["s3:Get*","s3:List*"],
+	          "Resource": "*",
+	          "Effect": "Allow"
+	        }
+					]
+				}
+			}]
+		}
+	},
+"IAMAPIServiceRole":
 {
 	"Type": "AWS::IAM::Role",
 	"Properties": {
-    "RoleName": "Lambda_API_Service_Role",
+    "RoleName": "LambdaAPIServiceRole",
  		"AssumeRolePolicyDocument": {
 		  "Version": "2012-10-17",
 		  "Statement": [
@@ -15,20 +49,12 @@
 				"Service": "apigateway.amazonaws.com"
 			  },
 			  "Action": "sts:AssumeRole"
-			},
-      {
-        "Sid": "",
-        "Effect": "Allow",
-        "Principal": {
-          "Service": "lambda.amazonaws.com"
-          },
-        "Action": "sts:AssumeRole"
-      }
+			}
 		  ]
 		},
 		"ManagedPolicyArns": ["arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"],
 		"Policies": [{
-			"PolicyName": "Lambda_API_Service_Role_Policy",
+			"PolicyName": "API_Service_Role_Policy",
 			"PolicyDocument": {
 				"Version": "2012-10-17",
 				"Statement": [
@@ -36,12 +62,7 @@
 						"Action": "lambda:InvokeFunction",
 						"Resource": {"Fn::GetAtt": ["APIFunction", "Arn"]},
 						"Effect": "Allow"
-					},
-          {
-          "Action": ["s3:Get*","s3:List*"],
-          "Resource": "*",
-          "Effect": "Allow"
-        }
+					}
 				]
 			}
 		}]
@@ -59,7 +80,7 @@
 		"Handler": "Get_Car.get_car",
 		"Runtime": "python3.6",
 		"MemorySize": 1024,
-		"Role": {"Ref" : "IAMLambdaAPIServiceRole" },
+		"Role": {"Fn::GetAtt": ["IAMLambdaServiceRole", "Arn"]},
     "Timeout" : 60
 	}
 },
@@ -131,7 +152,7 @@
 "passthroughBehavior": "when_no_match",
 "httpMethod": "POST",
 "contentHandling": "CONVERT_TO_TEXT",
-"credentials": {"Fn::GetAtt": ["IAMLambdaAPIServiceRole", "Arn"]},
+"credentials": {"Fn::GetAtt": ["IAMAPIServiceRole", "Arn"]},
 "type": "aws"
 }
 }
@@ -182,7 +203,7 @@
 					}
 				]
 			},
-			"Users": { "Ref" : "RestAPICaller"},
+			"Users": ["Get_Car_Caller"],
 			"ManagedPolicyName": "API_Caller_Policy"
 		}
 },
