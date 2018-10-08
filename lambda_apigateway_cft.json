@@ -207,6 +207,7 @@
 			"ManagedPolicyName": "API_Caller_Policy"
 		}
 },
+
 "LambdaPermissions":{
 	"Type": "AWS::Lambda::Permission",
 	"DependsOn": ["APIFunction"],
@@ -254,6 +255,43 @@
             }]
           }
         }]
+      }
+    },
+		"BucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": "car-images-hd",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:GetObject"
+              ],
+              "Resource": "arn:aws:s3:::car-images-hd/*",
+              "Condition": {},
+              "Principal": {
+                "AWS": [
+                  {
+                    "Fn::Join": [
+                      ":",
+                      [
+                        "arn:aws:iam:",
+                        {
+                          "Ref": "AWS::AccountId"
+                        },
+                        {
+													"Ref": "RestAPICaller"
+												}
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
       }
     },
         "ApiGatewayAccount": {
